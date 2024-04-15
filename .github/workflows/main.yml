@@ -46,7 +46,7 @@ jobs:
       - name: Deploy to Amazon ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
-          task-definition: t
+          task-definition: ctseFam
           service: ctseService
           cluster: ctseCluster
           wait-for-service-stability: true
