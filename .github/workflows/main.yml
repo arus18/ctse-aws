@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: Java CI/CD with Maven, ECR, and ECS
 
 on:
   push:
@@ -6,16 +6,23 @@ on:
 
 jobs:
   build-and-deploy:
-    name: Build Docker Image and Update ECS Service
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Build artifact with Maven
-        run: mvn clean install package
+      - name: Set up JDK 17 and Maven
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
 
-      - name: Configure AWS credentials
+      - name: Build with Maven and cache dependencies
+        run: mvn -B package --file pom.xml
+
+      - name: Configure AWS credentials for ECR
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -26,14 +33,22 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build Docker image
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: 737432160967.dkr.ecr.eu-north-1.amazonaws.com/ctse
+          IMAGE_TAG: latest
         run: |
-          docker build -t 737432160967.dkr.ecr.eu-north-1.amazonaws.com/ctse:latest .
-          docker tag ctse:latest 737432160967.dkr.ecr.eu-north-1.amazonaws.com/ctse:latest
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      - name: Push Docker image to ECR
-        run: docker push 737432160967.dkr.ecr.eu-north-1.amazonaws.com/ctse:latest
-
-      - name: Update ECS Service
-        run: |
-          aws ecs update-service --cluster ctseCluster --service ctseService --force-new-deployment
+      - name: Deploy to Amazon ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: t
+          service: ctseService
+          cluster: ctseCluster
+          wait-for-service-stability: true
+          capabilities: 'CAPABILITY_NAMED_IAM'
+          image-urls: ${{ steps.build-image.outputs.image }}
