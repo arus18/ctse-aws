@@ -1,34 +1,12 @@
-name: Java CI/CD with Maven, ECR, ECS, and SonarCloud
+name: Java CI/CD with Maven, ECR, and ECS
 
 on:
   push:
     branches: [master]
 
 jobs:
-  sonarcloud-scan:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up JDK 17 and Maven
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: maven
-
-      - name: SonarCloud Scan
-        env:
-          GITHUB_TOKEN: ${{ secrets.GIT_PERSONAL_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_CLOUD_TOKEN }}
-        run:  sonar:sonar -Dsonar.projectKey=arus18 -Dsonar.organization=arus18 -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_CLOUD_TOKEN
-
   build-and-deploy:
     runs-on: ubuntu-latest
-
-    needs: sonarcloud-scan
 
     steps:
       - name: Checkout code
