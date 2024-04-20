@@ -17,6 +17,6 @@ class HelloController {
         String apiUrl = "https://www.google.com";
         RestTemplate restTemplate = new RestTemplate();
         String response = restTemplate.getForObject(apiUrl, String.class);
-        return "Outbound request to " + apiUrl + " successful. Response: " + response;
+        return "Outbound request to " + apiUrl + " Successful. Response: " + response;
     }
 }
