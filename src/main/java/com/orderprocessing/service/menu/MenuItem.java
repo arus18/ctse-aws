@@ -1,21 +1,22 @@
-package com.example.test.employee;
+package com.orderprocessing.service.menu;
+
 
 import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
-@Table(name = "employees")
+@Table(name = "menu_items")
 @Data
-public class Employee {
+public class MenuItem {
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
     private Long id;
 
     private String name;
-    private String email;
-    private String department;
-
+    private String description;
+    private double price;
 
 }
 
