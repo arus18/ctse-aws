@@ -17,6 +17,7 @@ public class Order {
     @JoinColumn(name = "order_id")
     private List<OrderItem> items;
 
+    //change
     private String customerName;
     private String deliveryAddress;
 
